@@ -26,11 +26,11 @@ The optional nginx container acts as a reverse proxy to access the jackett conta
 ## Setup
 
 - Create a openvpn configruation file and place it in the `config/openvpn` directory.
-- Edit the `docker-compose.yml` file and replace the openvpn container command line to match you openvpn configuration file. You can also provide other openvpn parameters here. The example has 3 extra parameters.
+- Edit the `docker-compose.yml` file and replace the openvpn container command line so it matches your openvpn configuration file. You can also provide other openvpn parameters here. The example has 3 extra parameters which may need to be removed to work for you.
 
 		command: --config /vpn/my-config.ovpn --auth-nocache --sndbuf 262144 --rcvbuf 262144
 
-- Update the `port` configuration of your port 80 is not available.
+- Update the `port` configuration (if port 80 is not available or you want to use another port).
 
 ### Traefik
 
@@ -43,6 +43,8 @@ Update the traefik configuration `docker-compose-traefik.yml` and replace the `.
     - "traefik.frontend.rule=Host:....."
 		
 When running add the `-f docker-compose-traefik.yml` parameter to the `docker-compose` commands.
+
+	docker-compose -f docker-compose-traefik.yml [docker-compose-command]
 
 ## Running
 

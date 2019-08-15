@@ -1,0 +1,62 @@
+version: '3.5'
+
+services:
+  openvpn:
+    image: ekristen/openvpn-client
+    container_name: openvpn
+    privileged: true
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - web
+      - default
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    volumes:
+      - ./config/openvpn:/vpn:ro
+      - /etc/localtime:/etc/localtime:ro
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+    stdin_open: true
+    tty: true
+    dns:
+      - 1.1.1.1
+    command: --config /vpn/my-config.ovpn --auth-nocache --sndbuf 262144 --rcvbuf 262144
+
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    restart: always
+    network_mode: "service:openvpn"
+    depends_on:
+      - openvpn
+    volumes:
+      - ./config/jackett/config:/config
+      - ./config/jackett/downloads:/downloads
+      - /etc/localtime:/etc/localtime:ro
+
+  nginx_jackett:
+    image: nginx:jackett
+    container_name: nginx_jackett
+    build: ./config/nginx/jackett
+    restart: unless-stopped
+    networks:
+      - web
+      - default
+    labels:
+      - "traefik.backend=nginx_jackett"
+      - "traefik.docker.network=web"
+      - "traefik.frontend.rule=Host:....."
+      - "traefik.enable=true"
+      - "traefik.port=9117"
+    links:
+      - openvpn:jackett
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+networks:
+  web:
+    external: true
